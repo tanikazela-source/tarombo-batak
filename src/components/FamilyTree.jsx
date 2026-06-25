@@ -440,18 +440,22 @@ function FamilyTree({ onSelectMember }) {
         isSelected: selectedNodeId === node.id,
         onToggleExpand: handleToggleExpand,
         onSelectMember: (m) => {
-          setSelectedNodeId(m.id);
-          onSelectMember(m);
-          // Auto-center camera on the selected card, offset left to clear the desktop drawer
-          const isWide = window.innerWidth > 768;
-          const xOffset = isWide ? 180 : 0;
-          const zoomLevel = isWide ? 0.85 : 0.70;
-          if (reactFlowInstance && reactFlowInstance.setCenter) {
-            reactFlowInstance.setCenter(
-              x + nodeWidth / 2 + xOffset,
-              y + nodeHeight / 2,
-              { zoom: zoomLevel, duration: 600 }
-            );
+          try {
+            setSelectedNodeId(m.id);
+            onSelectMember(m);
+            // Auto-center camera on the selected card, offset left to clear the desktop drawer
+            const isWide = window.innerWidth > 768;
+            const xOffset = isWide ? 180 : 0;
+            const zoomLevel = isWide ? 0.85 : 0.70;
+            if (reactFlowInstance && reactFlowInstance.setCenter) {
+              reactFlowInstance.setCenter(
+                x + nodeWidth / 2 + xOffset,
+                y + nodeHeight / 2,
+                { zoom: zoomLevel, duration: 600 }
+              );
+            }
+          } catch (err) {
+            console.error("Card selection camera centering failed: ", err);
           }
         }
       },
@@ -581,43 +585,61 @@ function FamilyTree({ onSelectMember }) {
 
   // SEARCH AND CINEMATIC CAMERA PANNING TO RESULTS
   const handleSearchSubmit = (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    const query = searchQuery.trim();
-    setActiveSearchQuery(query);
-    if (!query) return;
-
-    // Find the first matching node
-    const matchedNode = nodes.find(
-      (n) =>
-        n.data &&
-        n.data.name &&
-        (n.data.name.toLowerCase().includes(query.toLowerCase()) ||
-          (n.data.margas && n.data.margas.some((m) => m.toLowerCase().includes(query.toLowerCase()))))
-    );
-
-    if (matchedNode) {
-      setSelectedNodeId(matchedNode.id);
+    try {
+      if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
       
-      // Expand all parent nodes leading up to this matched node
-      const parentChain = getParentChain(taromboData, matchedNode.id);
-      if (parentChain && parentChain.length > 0) {
-        setExpandedNodes((prev) => {
-          const next = new Set(prev);
-          parentChain.forEach((id) => next.add(id));
-          return next;
-        });
-      }
+      const query = searchQuery.trim();
+      setActiveSearchQuery(query);
+      if (!query) return;
 
-      // Smooth pan camera focus
-      const isWide = window.innerWidth > 768;
-      const zoomLevel = isWide ? 0.85 : 0.70;
-      if (reactFlowInstance && reactFlowInstance.setCenter) {
-        reactFlowInstance.setCenter(
-          matchedNode.position.x + nodeWidth / 2,
-          matchedNode.position.y + nodeHeight / 2,
-          { zoom: zoomLevel, duration: 800 }
-        );
+      // Find the first matching node in current state
+      const matchedNode = nodes.find(
+        (n) =>
+          n.data &&
+          n.data.name &&
+          (n.data.name.toLowerCase().includes(query.toLowerCase()) ||
+            (n.data.margas && n.data.margas.some((m) => m.toLowerCase().includes(query.toLowerCase()))))
+      );
+
+      if (matchedNode) {
+        setSelectedNodeId(matchedNode.id);
+        
+        // Expand all parent nodes leading up to this matched node
+        const parentChain = getParentChain(taromboData, matchedNode.id);
+        if (parentChain && parentChain.length > 0) {
+          setExpandedNodes((prev) => {
+            const next = new Set(prev);
+            parentChain.forEach((id) => next.add(id));
+            return next;
+          });
+        }
+
+        // Defer camera panning so that the layout calculation runs first and node coordinates are correct
+        setTimeout(() => {
+          try {
+            if (reactFlowInstance) {
+              const latestNodes = reactFlowInstance.getNodes();
+              const latestNode = latestNodes.find((n) => n.id === matchedNode.id);
+              if (latestNode && latestNode.position) {
+                const isWide = window.innerWidth > 768;
+                const zoomLevel = isWide ? 0.85 : 0.70;
+                if (reactFlowInstance.setCenter) {
+                  reactFlowInstance.setCenter(
+                    latestNode.position.x + nodeWidth / 2,
+                    latestNode.position.y + nodeHeight / 2,
+                    { zoom: zoomLevel, duration: 800 }
+                  );
+                }
+              }
+            }
+          } catch (panErr) {
+            console.error("Delayed camera panning failed: ", panErr);
+          }
+        }, 250);
       }
+    } catch (err) {
+      console.error("Search submission failed: ", err);
     }
   };
 
@@ -660,6 +682,8 @@ function FamilyTree({ onSelectMember }) {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
                   handleSearchSubmit(e);
                 }
               }}
