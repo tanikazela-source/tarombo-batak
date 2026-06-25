@@ -446,11 +446,13 @@ function FamilyTree({ onSelectMember }) {
           const isWide = window.innerWidth > 768;
           const xOffset = isWide ? 180 : 0;
           const zoomLevel = isWide ? 0.85 : 0.70;
-          reactFlowInstance.setCenter(
-            x + nodeWidth / 2 + xOffset,
-            y + nodeHeight / 2,
-            { zoom: zoomLevel, duration: 600 }
-          );
+          if (reactFlowInstance && reactFlowInstance.setCenter) {
+            reactFlowInstance.setCenter(
+              x + nodeWidth / 2 + xOffset,
+              y + nodeHeight / 2,
+              { zoom: zoomLevel, duration: 600 }
+            );
+          }
         }
       },
       style: {
@@ -579,7 +581,7 @@ function FamilyTree({ onSelectMember }) {
 
   // SEARCH AND CINEMATIC CAMERA PANNING TO RESULTS
   const handleSearchSubmit = (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     const query = searchQuery.trim();
     setActiveSearchQuery(query);
     if (!query) return;
@@ -609,11 +611,13 @@ function FamilyTree({ onSelectMember }) {
       // Smooth pan camera focus
       const isWide = window.innerWidth > 768;
       const zoomLevel = isWide ? 0.85 : 0.70;
-      reactFlowInstance.setCenter(
-        matchedNode.position.x + nodeWidth / 2,
-        matchedNode.position.y + nodeHeight / 2,
-        { zoom: zoomLevel, duration: 800 }
-      );
+      if (reactFlowInstance && reactFlowInstance.setCenter) {
+        reactFlowInstance.setCenter(
+          matchedNode.position.x + nodeWidth / 2,
+          matchedNode.position.y + nodeHeight / 2,
+          { zoom: zoomLevel, duration: 800 }
+        );
+      }
     }
   };
 
@@ -645,8 +649,7 @@ function FamilyTree({ onSelectMember }) {
         
         {/* Left Side: Title and Search box */}
         <div className="flex flex-col md:flex-row gap-3 pointer-events-auto items-stretch">
-          <form
-            onSubmit={handleSearchSubmit}
+          <div
             className="flex items-center bg-black/70 border border-[#8B0000]/40 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-[0_0_15px_rgba(139,0,0,0.1)] focus-within:border-[#D4AF37] focus-within:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all duration-300"
           >
             <Search className="w-4 h-4 text-zinc-400 mr-2" />
@@ -655,6 +658,11 @@ function FamilyTree({ onSelectMember }) {
               placeholder="Cari marga / nama..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSearchSubmit(e);
+                }
+              }}
               className="bg-transparent border-none text-white text-sm outline-none w-48 md:w-64 placeholder-zinc-500 font-poppins"
             />
             {searchQuery && (
@@ -670,12 +678,13 @@ function FamilyTree({ onSelectMember }) {
               </button>
             )}
             <button
-              type="submit"
-              className="ml-2 bg-[#8B0000] text-white hover:bg-[#A30000] text-xs font-semibold px-2.5 py-1 rounded-lg transition"
+              type="button"
+              onClick={handleSearchSubmit}
+              className="ml-2 bg-[#8B0000] text-white hover:bg-[#A30000] text-xs font-semibold px-2.5 py-1 rounded-lg transition cursor-pointer"
             >
               Cari
             </button>
-          </form>
+          </div>
         </div>
 
         {/* Right Side: Navigation Filters & Layout Toggle */}
