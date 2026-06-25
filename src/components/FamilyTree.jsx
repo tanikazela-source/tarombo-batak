@@ -189,6 +189,11 @@ function MemberNode({ data }) {
 
   return (
     <div
+      onClick={(e) => {
+        // Prevent click when tapping the expand/collapse button
+        if (e.target.closest(".toggle-btn")) return;
+        data.onSelectMember(data);
+      }}
       className={`relative overflow-hidden rounded-xl text-left glow-card-hover cursor-pointer transition-all duration-300 select-none ${borderTheme}`}
       style={{ width: `${nodeWidth}px`, height: `${nodeHeight}px` }}
     >
@@ -362,160 +367,152 @@ function FamilyTree({ onSelectMember }) {
     });
   }, []);
 
-  // Handle node selection and camera centering natively via React Flow
-  const handleNodeClick = useCallback((event, node) => {
-    if (event.target.closest(".toggle-btn")) return;
-    if (node.id === "tree-title") return;
-
-    try {
-      setSelectedNodeId(node.id);
-      if (onSelectMember) {
-        onSelectMember(node.data);
-      }
-
-      // Auto-center camera on the selected card, offset left to clear the desktop drawer
-      const isWide = window.innerWidth > 768;
-      const xOffset = isWide ? 180 : 0;
-      const zoomLevel = isWide ? 0.85 : 0.70;
-      
-      if (reactFlowInstance && reactFlowInstance.setCenter) {
-        reactFlowInstance.setCenter(
-          node.position.x + nodeWidth / 2 + xOffset,
-          node.position.y + nodeHeight / 2,
-          { zoom: zoomLevel, duration: 600 }
-        );
-      }
-    } catch (err) {
-      console.error("Card selection camera centering failed: ", err);
+  // Recalculate node subtree widths dynamically to avoid overlaps
+  const computeSubtreeWidths = useCallback((node, isHorizontal) => {
+    const gap = isHorizontal ? 50 : siblingGap;
+    if (!node.children || node.children.length === 0 || !expandedNodes.has(node.id)) {
+      // Leaf or collapsed node size
+      node.subtreeWidth = (isHorizontal ? nodeHeight : nodeWidth) + gap;
+      return node.subtreeWidth;
     }
-  }, [onSelectMember, reactFlowInstance]);
+
+    let totalWidth = 0;
+    node.children.forEach((child) => {
+      totalWidth += computeSubtreeWidths(child, isHorizontal);
+    });
+
+    node.subtreeWidth = Math.max((isHorizontal ? nodeHeight : nodeWidth) + gap, totalWidth);
+    return node.subtreeWidth;
+  }, [expandedNodes]);
+
+  // Recursively place nodes and edges based on calculated subtree widths
+  const assignPositions = useCallback((
+    node,
+    x,
+    y,
+    nodesList,
+    edgesList,
+    parentId = null,
+    isHorizontal = false,
+    query = "",
+    selectedLineageFilter = "all",
+    selectedGenFilter = "all",
+    currentLineage = ""
+  ) => {
+    // 1. Evaluate Search Query Match (checks name and list of margas)
+    const isSearchMatch = query.trim() !== "" && (
+      node.name.toLowerCase().includes(query.toLowerCase()) ||
+      (node.margas && node.margas.some(m => m.toLowerCase().includes(query.toLowerCase())))
+    );
+
+    // 2. Evaluate filter match
+    const generationMatch = selectedGenFilter === "all" || node.generation === parseInt(selectedGenFilter);
+    
+    // Determine lineage dynamically
+    let nextLineage = currentLineage;
+    if (node.id === "gurutateabulan") {
+      nextLineage = "gurutatea";
+    } else if (node.id === "rajaisombaon") {
+      nextLineage = "rajaisombaon";
+    }
+
+    // Lineage filter matching
+    let lineageMatch = true;
+    if (selectedLineageFilter === "gurutatea") {
+      lineageMatch = node.id === "sirajabatak" || nextLineage === "gurutatea";
+    } else if (selectedLineageFilter === "rajaisombaon") {
+      lineageMatch = node.id === "sirajabatak" || nextLineage === "rajaisombaon";
+    }
+
+    const isFilteredOut = !generationMatch || !lineageMatch;
+
+    // Add nodes to list
+    nodesList.push({
+      id: node.id,
+      type: "memberNode",
+      position: { x, y },
+      data: {
+        ...node,
+        direction: isHorizontal ? "LR" : "TB",
+        hasChildren: node.children && node.children.length > 0,
+        isExpanded: expandedNodes.has(node.id),
+        isHighlighted: isSearchMatch,
+        isSelected: selectedNodeId === node.id,
+        onToggleExpand: handleToggleExpand,
+        onSelectMember: (m) => {
+          try {
+            setSelectedNodeId(m.id);
+            onSelectMember(m);
+            // Auto-center camera on the selected card, offset left to clear the desktop drawer
+            const isWide = window.innerWidth > 768;
+            const xOffset = isWide ? 180 : 0;
+            const zoomLevel = isWide ? 0.85 : 0.70;
+            if (reactFlowInstance && reactFlowInstance.setCenter) {
+              reactFlowInstance.setCenter(
+                x + nodeWidth / 2 + xOffset,
+                y + nodeHeight / 2,
+                { zoom: zoomLevel, duration: 600 }
+              );
+            }
+          } catch (err) {
+            console.error("Card selection camera centering failed: ", err);
+          }
+        }
+      },
+      style: {
+        opacity: isFilteredOut ? 0.25 : 1,
+        pointerEvents: "auto",
+        transition: "opacity 0.3s ease"
+      }
+    });
+
+    // Add edges
+    if (parentId) {
+      edgesList.push({
+        id: `edge-${parentId}-${node.id}`,
+        source: parentId,
+        target: node.id,
+        animated: isSearchMatch || selectedNodeId === node.id || selectedNodeId === parentId,
+        className: (isSearchMatch || selectedNodeId === node.id) ? "active" : "normal",
+        style: {
+          stroke: "#ffffff",
+          strokeWidth: (isSearchMatch || selectedNodeId === node.id) ? 5.5 : 3.5,
+          opacity: isFilteredOut ? 0.25 : 1
+        }
+      });
+    }
+
+    // Traverse children if node is expanded
+    if (node.children && node.children.length > 0 && expandedNodes.has(node.id)) {
+      if (isHorizontal) {
+        // Left-to-Right layout: spread child nodes vertically (along Y)
+        let currentY = y - node.subtreeWidth / 2;
+        node.children.forEach((child) => {
+          const childSubtreeWidth = child.subtreeWidth;
+          const childX = x + levelGapHorizontal;
+          const childY = currentY + childSubtreeWidth / 2;
+          assignPositions(child, childX, childY, nodesList, edgesList, node.id, isHorizontal, query, selectedLineageFilter, selectedGenFilter, nextLineage);
+          currentY += childSubtreeWidth;
+        });
+      } else {
+        // Top-to-Bottom layout: spread child nodes horizontally (along X)
+        let currentX = x - node.subtreeWidth / 2;
+        node.children.forEach((child) => {
+          const childSubtreeWidth = child.subtreeWidth;
+          const childX = currentX + childSubtreeWidth / 2;
+          const childY = y + levelGapVertical;
+          assignPositions(child, childX, childY, nodesList, edgesList, node.id, isHorizontal, query, selectedLineageFilter, selectedGenFilter, nextLineage);
+          currentX += childSubtreeWidth;
+        });
+      }
+    }
+  }, [expandedNodes, selectedNodeId, handleToggleExpand, onSelectMember, reactFlowInstance]);
 
   // RE-CALCULATE ENTIRE GRAPH ON STATE CHANGE
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
-    // 1. Recalculate node subtree widths dynamically to avoid overlaps
-    const computeSubtreeWidths = (node, isHorizontal) => {
-      const gap = isHorizontal ? 50 : siblingGap;
-      if (!node.children || node.children.length === 0 || !expandedNodes.has(node.id)) {
-        node.subtreeWidth = (isHorizontal ? nodeHeight : nodeWidth) + gap;
-        return node.subtreeWidth;
-      }
-
-      let totalWidth = 0;
-      node.children.forEach((child) => {
-        totalWidth += computeSubtreeWidths(child, isHorizontal);
-      });
-
-      node.subtreeWidth = Math.max((isHorizontal ? nodeHeight : nodeWidth) + gap, totalWidth);
-      return node.subtreeWidth;
-    };
-
-    // 2. Recursively place nodes and edges based on calculated subtree widths
-    const assignPositions = (
-      node,
-      x,
-      y,
-      nodesList,
-      edgesList,
-      parentId = null,
-      isHorizontal = false,
-      query = "",
-      selectedLineageFilter = "all",
-      selectedGenFilter = "all",
-      currentLineage = ""
-    ) => {
-      // Evaluate Search Query Match (checks name and list of margas)
-      const isSearchMatch = query.trim() !== "" && (
-        node.name.toLowerCase().includes(query.toLowerCase()) ||
-        (node.margas && node.margas.some(m => m.toLowerCase().includes(query.toLowerCase())))
-      );
-
-      // Evaluate filter match
-      const generationMatch = selectedGenFilter === "all" || node.generation === parseInt(selectedGenFilter);
-      
-      // Determine lineage dynamically
-      let nextLineage = currentLineage;
-      if (node.id === "gurutateabulan") {
-        nextLineage = "gurutatea";
-      } else if (node.id === "rajaisombaon") {
-        nextLineage = "rajaisombaon";
-      }
-
-      // Lineage filter matching
-      let lineageMatch = true;
-      if (selectedLineageFilter === "gurutatea") {
-        lineageMatch = node.id === "sirajabatak" || nextLineage === "gurutatea";
-      } else if (selectedLineageFilter === "rajaisombaon") {
-        lineageMatch = node.id === "sirajabatak" || nextLineage === "rajaisombaon";
-      }
-
-      const isFilteredOut = !generationMatch || !lineageMatch;
-
-      // Add nodes to list
-      nodesList.push({
-        id: node.id,
-        type: "memberNode",
-        position: { x, y },
-        data: {
-          ...node,
-          direction: isHorizontal ? "LR" : "TB",
-          hasChildren: node.children && node.children.length > 0,
-          isExpanded: expandedNodes.has(node.id),
-          isHighlighted: isSearchMatch,
-          isSelected: selectedNodeId === node.id,
-          onToggleExpand: handleToggleExpand
-        },
-        style: {
-          opacity: isFilteredOut ? 0.25 : 1,
-          pointerEvents: "auto",
-          transition: "opacity 0.3s ease"
-        }
-      });
-
-      // Add edges
-      if (parentId) {
-        edgesList.push({
-          id: `edge-${parentId}-${node.id}`,
-          source: parentId,
-          target: node.id,
-          animated: isSearchMatch || selectedNodeId === node.id || selectedNodeId === parentId,
-          className: (isSearchMatch || selectedNodeId === node.id) ? "active" : "normal",
-          style: {
-            stroke: "#ffffff",
-            strokeWidth: (isSearchMatch || selectedNodeId === node.id) ? 5.5 : 3.5,
-            opacity: isFilteredOut ? 0.25 : 1
-          }
-        });
-      }
-
-      // Traverse children if node is expanded
-      if (node.children && node.children.length > 0 && expandedNodes.has(node.id)) {
-        if (isHorizontal) {
-          // Left-to-Right layout: spread child nodes vertically (along Y)
-          let currentY = y - node.subtreeWidth / 2;
-          node.children.forEach((child) => {
-            const childSubtreeWidth = child.subtreeWidth;
-            const childX = x + levelGapHorizontal;
-            const childY = currentY + childSubtreeWidth / 2;
-            assignPositions(child, childX, childY, nodesList, edgesList, node.id, isHorizontal, query, selectedLineageFilter, selectedGenFilter, nextLineage);
-            currentY += childSubtreeWidth;
-          });
-        } else {
-          // Top-to-Bottom layout: spread child nodes horizontally (along X)
-          let currentX = x - node.subtreeWidth / 2;
-          node.children.forEach((child) => {
-            const childSubtreeWidth = child.subtreeWidth;
-            const childX = currentX + childSubtreeWidth / 2;
-            const childY = y + levelGapVertical;
-            assignPositions(child, childX, childY, nodesList, edgesList, node.id, isHorizontal, query, selectedLineageFilter, selectedGenFilter, nextLineage);
-            currentX += childSubtreeWidth;
-          });
-        }
-      }
-    };
-
     const nodesList = [];
     const edgesList = [];
     const isHorizontal = layoutDirection === "LR";
@@ -560,7 +557,10 @@ function FamilyTree({ onSelectMember }) {
     selectedLineage,
     selectedGeneration,
     selectedNodeId,
-    handleToggleExpand
+    computeSubtreeWidths,
+    assignPositions,
+    setNodes,
+    setEdges
   ]);
 
   // Reset initial fit on major filter or layout changes
@@ -801,7 +801,6 @@ function FamilyTree({ onSelectMember }) {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
-          onNodeClick={handleNodeClick}
           zoomOnScroll={true}
           zoomOnDoubleClick={false}
           panOnDrag={true}
