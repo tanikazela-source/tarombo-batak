@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Poppins:wght@200;300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-batak-red: #8B0000;
+  --color-batak-red-glow: rgba(139, 0, 0, 0.6);
+  --color-batak-black: #111111;
+  --color-batak-gold: #D4AF37;
+  --color-batak-gold-glow: rgba(212, 175, 55, 0.4);
+  
+  --font-cinzel: "Cinzel", serif;
+  --font-poppins: "Poppins", sans-serif;
+  --font-montserrat: "Montserrat", sans-serif;
+
+  --animate-spin-slow: spin 20s linear infinite;
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-glow: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 4px rgba(139, 0, 0, 0.3), 0 0 10px rgba(139, 0, 0, 0.2);
+  }
+  to {
+    text-shadow: 0 0 12px rgba(139, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.4);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #111111;
+}
+::-webkit-scrollbar-thumb {
+  background: #8B0000;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
+
+body {
+  background-color: #111111;
+  color: #ffffff;
+  font-family: var(--font-poppins);
+  overflow-x: hidden;
+}
+
+/* Premium Glassmorphic Classes */
+.glass-panel {
+  background: rgba(17, 17, 17, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 0, 0, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Woven Batak Ulos Card Texture */
+.ulos-card-bg {
+  background-color: #111111;
+  background-image: 
+    linear-gradient(135deg, rgba(25, 12, 12, 0.94) 0%, rgba(10, 10, 10, 0.98) 100%),
+    /* Vertical red warp threads */
+    repeating-linear-gradient(90deg, rgba(139, 0, 0, 0.16) 0px, rgba(139, 0, 0, 0.16) 1.5px, transparent 1.5px, transparent 5px),
+    /* Horizontal white/grey weft threads */
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 4.5px);
+  background-blend-mode: overlay, normal, normal;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-panel-gold {
+  background: rgba(17, 17, 17, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(212, 175, 55, 0.05);
+}
+
+.text-gradient-red-gold {
+  background: linear-gradient(135deg, #ffffff 0%, #D4AF37 50%, #8B0000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #FFE89C 0%, #D4AF37 50%, #A27B00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Cinematic Smoke & Lighting */
+.smoke-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 80%, rgba(139, 0, 0, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Red Cinematic Glow */
+.glow-card-hover {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glow-card-hover:hover {
+  border-color: rgba(139, 0, 0, 0.7);
+  box-shadow: 0 0 25px rgba(139, 0, 0, 0.4), inset 0 0 10px rgba(139, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+.glow-card-gold-hover {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glow-card-gold-hover:hover {
+  border-color: rgba(212, 175, 55, 0.7);
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.3), inset 0 0 10px rgba(212, 175, 55, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Animated Ulos background lines */
+.ulos-bg {
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(17, 17, 17, 0.25) 0%, #111111 100%),
+    repeating-linear-gradient(90deg, rgba(139, 0, 0, 0.04) 0px, rgba(139, 0, 0, 0.04) 1px, transparent 1px, transparent 8px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 1px, transparent 1px, transparent 12px);
+  background-size: cover, 16px 16px, 24px 24px;
+}
+
+/* React Flow customization */
+.react-flow__pane {
+  background-color: transparent !important;
+}
+
+.react-flow__edge-path {
+  stroke-width: 3.5;
+  stroke: rgba(255, 255, 255, 0.7) !important;
+}
+
+.react-flow__edge.active .react-flow__edge-path {
+  stroke: #ffffff !important;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9));
+}
+
+.react-flow__edge.normal .react-flow__edge-path {
+  stroke: rgba(255, 255, 255, 0.65) !important;
+}
+
+.react-flow__edge-path:hover {
+  stroke: #ffffff !important;
+  stroke-width: 5;
+}
+
+.react-flow__controls {
+  border: 1px solid rgba(139, 0, 0, 0.3) !important;
+  background: rgba(17, 17, 17, 0.8) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
+}
+
+.react-flow__controls-button {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(139, 0, 0, 0.2) !important;
+  color: #D4AF37 !important;
+  fill: #D4AF37 !important;
+}
+.react-flow__controls-button:hover {
+  background: rgba(139, 0, 0, 0.2) !important;
+}
+
+@keyframes dash {
+  from {
+    stroke-dashoffset: 200;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
