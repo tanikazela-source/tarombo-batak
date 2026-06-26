@@ -50,7 +50,7 @@ export const taromboData = {
                 "Nainggolan (Parhusip, Tungkop, Lumban Siantar, Hutabalian, Lumban Raja, Pusuk, Buaton, Nahulae)",
                 "Simatupang (Sianturi, Siburian, Togatorop)",
                 "Aritonang (Raja Gukguk, Simaremare)",
-                "Siregar (Silo, Dongaran, Silali, Siagian, Ritonga, Sormin)"
+                "Siregar (Silo, Dongaran, Silali, Ritonga, Sormin)"
               ],
               children: []
             },
