@@ -673,15 +673,15 @@ function FamilyTree({ onSelectMember }) {
         <div className="flex flex-col md:flex-row gap-3 pointer-events-auto items-stretch">
           <form
             onSubmit={handleSearchSubmit}
-            className="flex items-center bg-black/70 border border-[#8B0000]/40 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-[0_0_15px_rgba(139,0,0,0.1)] focus-within:border-[#D4AF37] focus-within:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all duration-300"
+            className="w-full md:w-80 flex items-center bg-black/70 border border-[#8B0000]/40 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-[0_0_15px_rgba(139,0,0,0.1)] focus-within:border-[#D4AF37] focus-within:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all duration-300"
           >
-            <Search className="w-4 h-4 text-zinc-400 mr-2" />
+            <Search className="w-4 h-4 text-zinc-400 mr-2 shrink-0" />
             <input
               type="text"
               placeholder="Cari marga / nama..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none text-white text-sm outline-none w-48 md:w-64 placeholder-zinc-500 font-poppins"
+              className="bg-transparent border-none text-white text-sm outline-none flex-1 min-w-0 placeholder-zinc-500 font-poppins"
             />
             {searchQuery && (
               <button
@@ -690,14 +690,14 @@ function FamilyTree({ onSelectMember }) {
                   setSearchQuery("");
                   setActiveSearchQuery("");
                 }}
-                className="text-xs text-zinc-500 hover:text-white px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800"
+                className="text-xs text-zinc-500 hover:text-white px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 shrink-0"
               >
                 Clear
               </button>
             )}
             <button
               type="submit"
-              className="ml-2 bg-[#8B0000] text-white hover:bg-[#A30000] text-xs font-semibold px-2.5 py-1 rounded-lg transition cursor-pointer"
+              className="ml-2 bg-[#8B0000] text-white hover:bg-[#A30000] text-xs font-semibold px-2.5 py-1 rounded-lg transition cursor-pointer shrink-0"
             >
               Cari
             </button>

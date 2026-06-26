@@ -71,35 +71,35 @@ export default function MemberModal({ isOpen, member, onClose }) {
 
               {/* Quick Info Grid */}
               <div className="grid grid-cols-2 gap-3 relative z-10">
-                <div className="bg-black/40 border border-zinc-800/80 rounded-xl p-3 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-[#8B0000]/15 text-[#8B0000]">
+                <div className="bg-black/40 border border-zinc-800/80 rounded-xl p-3 flex items-center gap-3 min-w-0">
+                  <div className="p-2 rounded-lg bg-[#8B0000]/15 text-[#8B0000] shrink-0">
                     <Award className="w-5 h-5" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <span className="text-[10px] text-zinc-500 uppercase block font-semibold">Generasi</span>
-                    <span className="text-sm font-medium text-white">Ke-{member.generation}</span>
+                    <span className="text-xs sm:text-sm font-medium text-white block truncate">Ke-{member.generation}</span>
                   </div>
                 </div>
 
-                <div className="bg-black/40 border border-zinc-800/80 rounded-xl p-3 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-[#D4AF37]/15 text-[#D4AF37]">
+                <div className="bg-black/40 border border-zinc-800/80 rounded-xl p-3 flex items-center gap-3 min-w-0">
+                  <div className="p-2 rounded-lg bg-[#D4AF37]/15 text-[#D4AF37] shrink-0">
                     <MapPin className="w-5 h-5" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <span className="text-[10px] text-zinc-500 uppercase block font-semibold">Asal / Huta</span>
-                    <span className="text-sm font-medium text-white truncate max-w-[150px] inline-block">
+                    <span className="text-xs sm:text-sm font-medium text-white block truncate" title={member.origin || "Toba"}>
                       {member.origin || "Toba"}
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-black/40 border border-zinc-800/80 rounded-xl p-3 flex items-center gap-3 col-span-2">
-                  <div className="p-2 rounded-lg bg-pink-500/15 text-pink-400">
+                <div className="bg-black/40 border border-zinc-800/80 rounded-xl p-3 flex items-center gap-3 col-span-2 min-w-0">
+                  <div className="p-2 rounded-lg bg-pink-500/15 text-pink-400 shrink-0">
                     <Heart className="w-5 h-5" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <span className="text-[10px] text-zinc-500 uppercase block font-semibold">Istri / Pasangan</span>
-                    <span className="text-sm font-medium text-white">
+                    <span className="text-xs sm:text-sm font-medium text-white block break-words">
                       {member.spouse || "Tidak Terdaftar / Misteri Adat"}
                     </span>
                   </div>
@@ -126,15 +126,15 @@ export default function MemberModal({ isOpen, member, onClose }) {
                     {member.children.map((child) => (
                       <div
                         key={child.id}
-                        className="p-3 bg-zinc-950/60 border border-zinc-850 rounded-lg flex items-center justify-between hover:border-[#8B0000]/60 hover:bg-black/50 transition duration-300"
+                        className="p-3 bg-zinc-950/60 border border-zinc-850 rounded-lg flex items-center justify-between hover:border-[#8B0000]/60 hover:bg-black/50 transition duration-300 min-w-0 gap-3"
                       >
-                        <div>
-                          <span className="text-xs font-semibold text-white block">{child.name}</span>
-                          <span className="text-[10px] text-zinc-500 block truncate max-w-[180px]">
+                        <div className="min-w-0 flex-1">
+                          <span className="text-xs font-semibold text-white block truncate">{child.name}</span>
+                          <span className="text-[10px] text-zinc-500 block truncate" title={child.title || `Generasi ke-${child.generation}`}>
                             {child.title || `Generasi ke-${child.generation}`}
                           </span>
                         </div>
-                        <span className="text-[10px] bg-[#8B0000]/25 text-red-300 px-1.5 py-0.5 rounded border border-[#8B0000]/40">
+                        <span className="text-[10px] bg-[#8B0000]/25 text-red-300 px-1.5 py-0.5 rounded border border-[#8B0000]/40 shrink-0">
                           G{child.generation}
                         </span>
                       </div>
