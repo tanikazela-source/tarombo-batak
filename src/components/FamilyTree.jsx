@@ -671,7 +671,8 @@ function FamilyTree({ onSelectMember }) {
         
         {/* Left Side: Title and Search box */}
         <div className="flex flex-col md:flex-row gap-3 pointer-events-auto items-stretch">
-          <div
+          <form
+            onSubmit={handleSearchSubmit}
             className="flex items-center bg-black/70 border border-[#8B0000]/40 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-[0_0_15px_rgba(139,0,0,0.1)] focus-within:border-[#D4AF37] focus-within:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all duration-300"
           >
             <Search className="w-4 h-4 text-zinc-400 mr-2" />
@@ -680,13 +681,6 @@ function FamilyTree({ onSelectMember }) {
               placeholder="Cari marga / nama..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleSearchSubmit(e);
-                }
-              }}
               className="bg-transparent border-none text-white text-sm outline-none w-48 md:w-64 placeholder-zinc-500 font-poppins"
             />
             {searchQuery && (
@@ -702,13 +696,12 @@ function FamilyTree({ onSelectMember }) {
               </button>
             )}
             <button
-              type="button"
-              onClick={handleSearchSubmit}
+              type="submit"
               className="ml-2 bg-[#8B0000] text-white hover:bg-[#A30000] text-xs font-semibold px-2.5 py-1 rounded-lg transition cursor-pointer"
             >
               Cari
             </button>
-          </div>
+          </form>
         </div>
 
         {/* Right Side: Navigation Filters & Layout Toggle */}
