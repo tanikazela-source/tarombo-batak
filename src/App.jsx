@@ -3,6 +3,7 @@ import Hero from "./components/Hero";
 import FamilyTree from "./components/FamilyTree";
 import MemberModal from "./components/MemberModal";
 import Timeline from "./components/Timeline";
+import PartuturanCalculator from "./components/PartuturanCalculator";
 import ParticlesBg from "./components/ParticlesBg";
 import BatakAudio from "./components/BatakAudio";
 import { GorgaBorder, GorgaCicak } from "./components/GorgaOrnament";
@@ -38,6 +39,11 @@ export default function App() {
       {/* 4. Family Tree Section (Interactive Dashboard) */}
       <div className="relative z-10 w-full">
         <FamilyTree onSelectMember={handleSelectMember} />
+      </div>
+
+      {/* 4.5. Batak Kinship (Partuturan) Calculator */}
+      <div className="relative z-10 w-full">
+        <PartuturanCalculator />
       </div>
 
       {/* 5. Historical Narrative Timeline */}
@@ -110,6 +116,9 @@ export default function App() {
               </a>
               <a href="#pohon" className="hover:text-[#D4AF37] transition font-medium flex items-center gap-1.5">
                 • Board Silsilah Interaktif
+              </a>
+              <a href="#kalkulator" className="hover:text-[#D4AF37] transition font-medium flex items-center gap-1.5">
+                • Kalkulator Partuturan Adat
               </a>
               <a href="#sejarah" className="hover:text-[#D4AF37] transition font-medium flex items-center gap-1.5">
                 • Lini Masa Migrasi
